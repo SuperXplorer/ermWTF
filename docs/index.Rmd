@@ -36,6 +36,7 @@ ggplot(data=tempdf,aes(x=tempblah,y=times,group=Person,color=Person))+geom_point
 peetable$difference <- peetable$mean-21
 peetable <- peetable[,c(1,2,5,3,4)]
 kable(peetable)
+
 ```
 
 
