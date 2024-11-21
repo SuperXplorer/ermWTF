@@ -29,7 +29,8 @@ suppressMessages(library(tidyverse))
 peetable <- timedf %>% group_by(person) %>% summarize(mean=round(mean(time),2),stdev=round(sd(time),2), n=length(person))
 peetable <- peetable %>% arrange(desc(mean))
 peetable <- peetable %>% add_row(person='Overall',mean=round(mean(timedf$time),2),stdev=round(sd(timedf$time),2),n=length(timedf$time))
-tempdf <- data.frame(times=c(rep(21,5),peetable$mean),tempblah=c(rep('Global Average',5),rep('Individual Average',5)),Person=(c(rep(c('Tommy','Alex','Lucas','Gabe','Overall'),2))))
+tempvec <- peetable$person
+tempdf <- data.frame(times=c(rep(21,5),peetable$mean),tempblah=c(rep('Global Average',5),rep('Individual Average',5)),Person=(c(rep(tempvec,2))))
 ggplot(data=tempdf,aes(x=tempblah,y=times,group=Person,color=Person))+geom_point()+geom_line()+xlab('Individual Average Times')
 peetable$difference <- peetable$mean-21
 peetable <- peetable[,c(1,2,5,3,4)]
