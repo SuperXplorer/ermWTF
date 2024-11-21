@@ -26,17 +26,16 @@ summary(lm(time ~ person,data=timedf))
 ```{r echo=FALSE}
 library(knitr)
 suppressMessages(library(tidyverse))
-peetable <- timedf %>% group_by(person) %>% summarize(mean=round(mean(time),2),stdev=round(sd(time),2), n=length(person))
+peetable <- timedf %>% group_by(person) %>% summarize(mean=round(mean(time),2),stdev=round(sd(time),2), n=length(person),max=max(time),min=min(time))
 peetable <- peetable %>% arrange(desc(mean))
-peetable <- peetable %>% add_row(person='Overall',mean=round(mean(timedf$time),2),stdev=round(sd(timedf$time),2),n=length(timedf$time))
+peetable <- peetable %>% add_row(person='Overall',mean=round(mean(timedf$time),2),stdev=round(sd(timedf$time),2),n=length(timedf$time),max=max(timedf$time),min=min(timedf$time))
 tempvec <- peetable$person
 num <- length(tempvec)
 tempdf <- data.frame(times=c(rep(21,num),peetable$mean),tempblah=c(rep('Global Average',num),rep('Individual Average',num)),Person=(c(rep(tempvec,2))))
 ggplot(data=tempdf,aes(x=tempblah,y=times,group=Person,color=Person))+geom_point()+geom_line()+xlab('Individual Average Times')
 peetable$difference <- peetable$mean-21
-peetable <- peetable[,c(1,2,5,3,4)]
+peetable <- peetable[,c(1,2,7,5,6,3,4)]
 kable(peetable)
-
 ```
 
 
