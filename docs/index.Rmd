@@ -19,8 +19,9 @@ timedf <- data.frame(time=c(temp$Tommy,temp$Lucas,temp$Gabe,temp$Alex,temp$Justi
 timedf <- na.omit(timedf)
 ggplot(data=timedf,mapping=aes(x=person,y=time,group=person,color=person))+geom_point()
 ggplot(data=timedf,mapping=aes(x=person,y=time,group=person,fill=person))+geom_boxplot()
-summary(lm(time ~ person,data=timedf))
+ggplot(data=timedf,mapping=aes(x=time))+geom_histogram(bins=15,fill='navy')
 ```
+
 # Comparison to Global Average
 
 ```{r echo=FALSE}
