@@ -1,0 +1,39 @@
+---
+title: "Times"
+author: "Tommy Yu"
+date: "2024-11-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, echo=FALSE, warning=FALSE}
+library(ggplot2)
+suppressMessages(library(googlesheets4))
+suppressMessages(temp <- read_sheet('https://docs.google.com/spreadsheets/d/1DA_NRzJxWlhYfJgpDxA_0aBQfLybx6eVLU2mjDHhazw/edit?usp=sharing'))
+
+timedf <- data.frame(time=c(temp$Tommy,temp$Lucas,temp$Gabe,temp$Alex),person=c(rep('Tommy',length(temp$Tommy)),rep('Lucas',length(temp$Lucas)),rep('Gabe',length(temp$Gabe)),rep('Alex',length(temp$Alex))))
+timedf <- na.omit(timedf)
+ggplot(data=timedf,mapping=aes(x=person,y=time,group=person,color=person))+geom_point()
+ggplot(data=timedf,mapping=aes(x=person,y=time,group=person,fill=person))+geom_boxplot()
+summary(lm(time ~ person,data=timedf))
+```
+# Comparison to Global Average
+
+```{r echo=FALSE}
+library(knitr)
+suppressMessages(library(tidyverse))
+peetable <- timedf %>% group_by(person) %>% summarize(mean=round(mean(time),2),stdev=round(sd(time),2), n=length(person))
+peetable <- peetable %>% arrange(desc(mean))
+peetable <- peetable %>% add_row(person='Overall',mean=round(mean(timedf$time),2),stdev=round(sd(timedf$time),2),n=length(timedf$time))
+tempdf <- data.frame(times=c(rep(21,5),peetable$mean),tempblah=c(rep('Global Average',5),rep('Individual Average',5)),Person=(c(rep(c('Tommy','Alex','Lucas','Gabe','Overall'),2))))
+ggplot(data=tempdf,aes(x=tempblah,y=times,group=Person,color=Person))+geom_point()+geom_line()+xlab('Individual Average Times')
+peetable$difference <- peetable$mean-21
+peetable <- peetable[,c(1,2,5,3,4)]
+kable(peetable)
+```
+
+
