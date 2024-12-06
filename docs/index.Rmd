@@ -31,15 +31,23 @@ ggplot(data=timedf,mapping=aes(x=time))+geom_histogram(bins=15,fill='navy') + gg
 library(knitr)
 suppressMessages(library(tidyverse))
 timetable <- timedf %>% group_by(person) %>% summarize(mean=round(mean(time),2),stdev=round(sd(time),2), n=length(person),max=max(time),min=min(time))
+tstat <- list()
+for(people in unique(timedf$person)){
+  tstat <- append(tstat,t.test(subset(timedf,person==people)[1],mu=21)$p.value)
+}
+timetable$pval<-tstat
 timetable <- timetable %>% arrange(desc(mean))
 timetable <- timetable %>% add_row(person='Overall',mean=round(mean(timedf$time),2),stdev=round(sd(timedf$time),2),n=length(timedf$time),max=max(timedf$time),min=min(timedf$time))
+timetable[6,]$pval[[1]]<-t.test(timedf$time,mu=21)$p.value
+
 tempvec <- timetable$person
 num <- length(tempvec)
 tempdf <- data.frame(times=c(rep(21,num),timetable$mean),tempblah=c(rep('Recommended Time',num),rep('Individual Average',num)),Person=(c(rep(tempvec,2))))
 ggplot(data=tempdf,aes(x=tempblah,y=times,group=Person,color=Person))+geom_point()+geom_line()+xlab('Individual Average Times')+scale_x_discrete(limits=c('Recommended Time','Individual Average'))
 timetable$difference <- timetable$mean-21
-timetable <- timetable[,c(1,2,7,5,6,3,4)]
-colnames(timetable)[3] <- 'Difference from Recommended'
+timetable <- timetable[,c(1,2,8,5,6,3,4,7)]
+colnames(timetable)[3] <- 'Difference'
+colnames(timetable)[8] <- 'P-Value(\U03BC=21)'
 kable(timetable,caption= 'Summary Statistics')
 turkey <- TukeyHSD(aov(time ~ person, data=timedf))
 turkeydf <- data.frame(Difference = round(turkey$person[,1],2),
