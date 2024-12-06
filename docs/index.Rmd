@@ -44,11 +44,13 @@ turkeydf <- data.frame(Difference = round(turkey$person[,1],2),
                        Upper=round(turkey$person[,3],2),
                        padj=round(turkey$person[,4],2))
 turkeydf <- turkeydf %>% arrange(desc(Difference))
+colnames(turkeydf)[4] <- 'P-Adjusted Value'
 kable(turkeydf, caption='Tukey Test Results')
 ```
 
 
 # Assumption Testing
+
 ```{r echo=FALSE, warning=FALSE}
 suppressMessages(library(lmtest))
 suppressMessages(library(car))
