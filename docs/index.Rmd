@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# 
+# Raw Data Graphs
 ```{r, echo=FALSE, warning=FALSE}
 library(ggplot2)
 suppressMessages(library(googlesheets4))
@@ -17,26 +17,54 @@ suppressMessages(temp <- read_sheet('https://docs.google.com/spreadsheets/d/1DA_
 
 timedf <- data.frame(time=c(temp$Tommy,temp$Lucas,temp$Gabe,temp$Alex,temp$Justin),person=c(rep('Tommy',length(temp$Tommy)),rep('Lucas',length(temp$Lucas)),rep('Gabe',length(temp$Gabe)),rep('Alex',length(temp$Alex)),rep('Justin',length(temp$Justin))))
 timedf <- na.omit(timedf)
-ggplot(data=timedf,mapping=aes(x=person,y=time,group=person,color=person))+geom_point()
-ggplot(data=timedf,mapping=aes(x=person,y=time,group=person,fill=person))+geom_boxplot()
-ggplot(data=timedf,mapping=aes(x=time))+geom_histogram(bins=15,fill='navy')
+ggplot(data=timedf,mapping=aes(x=person,y=time,group=person,color=person))+geom_point() + ggtitle('Time Scatterplot')
+ggplot(data=timedf,mapping=aes(x=person,y=time,group=person,fill=person))+geom_boxplot() + ggtitle('Time Boxplot')
+ggplot(data=timedf,mapping=aes(x=time))+geom_histogram(bins=15,fill='navy') + ggtitle('Time Histogram')
 ```
 
-# Comparison to Global Average
+# Comparison to Recommended Time
 
 ```{r echo=FALSE}
 library(knitr)
 suppressMessages(library(tidyverse))
-peetable <- timedf %>% group_by(person) %>% summarize(mean=round(mean(time),2),stdev=round(sd(time),2), n=length(person),max=max(time),min=min(time))
-peetable <- peetable %>% arrange(desc(mean))
-peetable <- peetable %>% add_row(person='Overall',mean=round(mean(timedf$time),2),stdev=round(sd(timedf$time),2),n=length(timedf$time),max=max(timedf$time),min=min(timedf$time))
-tempvec <- peetable$person
+timetable <- timedf %>% group_by(person) %>% summarize(mean=round(mean(time),2),stdev=round(sd(time),2), n=length(person),max=max(time),min=min(time))
+timetable <- timetable %>% arrange(desc(mean))
+timetable <- timetable %>% add_row(person='Overall',mean=round(mean(timedf$time),2),stdev=round(sd(timedf$time),2),n=length(timedf$time),max=max(timedf$time),min=min(timedf$time))
+tempvec <- timetable$person
 num <- length(tempvec)
-tempdf <- data.frame(times=c(rep(21,num),peetable$mean),tempblah=c(rep('Global Average',num),rep('Individual Average',num)),Person=(c(rep(tempvec,2))))
-ggplot(data=tempdf,aes(x=tempblah,y=times,group=Person,color=Person))+geom_point()+geom_line()+xlab('Individual Average Times')
-peetable$difference <- peetable$mean-21
-peetable <- peetable[,c(1,2,7,5,6,3,4)]
-kable(peetable)
+tempdf <- data.frame(times=c(rep(21,num),timetable$mean),tempblah=c(rep('Recommended Time',num),rep('Individual Average',num)),Person=(c(rep(tempvec,2))))
+ggplot(data=tempdf,aes(x=tempblah,y=times,group=Person,color=Person))+geom_point()+geom_line()+xlab('Individual Average Times')+scale_x_discrete(limits=c('Recommended Time','Individual Average'))
+timetable$difference <- timetable$mean-21
+timetable <- timetable[,c(1,2,7,5,6,3,4)]
+colnames(timetable)[3] <- 'Difference from Recommended'
+kable(timetable,caption= 'Summary Statistics')
+turkey <- TukeyHSD(aov(time ~ person, data=timedf))
+turkeydf <- data.frame(Difference = round(turkey$person[,1],2),
+                       Lower=round(turkey$person[,2],2),
+                       Upper=round(turkey$person[,3],2),
+                       padj=round(turkey$person[,4],2))
+turkeydf <- turkeydf %>% arrange(desc(Difference))
+kable(turkeydf, caption='Tukey Test Results')
 ```
 
+
+# Assumption Testing
+```{r echo=FALSE, warning=FALSE}
+suppressMessages(library(lmtest))
+suppressMessages(library(car))
+par(mfrow=c(2,2))
+personmodel <- lm(time ~ person,data=timedf)
+hist(personmodel$residuals,main='Residual Histogram')
+qqnorm(personmodel$residuals)
+qqline(personmodel$residuals)
+x <- 1:length(personmodel$residuals)
+plot(personmodel$residuals ~ x, ylab='Residuals',main='Residuals vs Order of Data Collection')
+plot(personmodel$residuals ~ personmodel$fitted.values,xlab='Fitted Values',ylab='Residuals',main='Fitted Values vs Residuals')
+stest <- shapiro.test(personmodel$residuals)
+dtest <- dwtest(personmodel)
+btest <- ncvTest(personmodel)
+rtest <- resettest(personmodel)
+testdf <- data.frame(test=c('Shapiro-Wilk','Durbin-Watson','Breusch-Pagan','RESET'),pval=c(stest$p.value,dtest$p.value,btest$p,rtest$p.value))
+kable(testdf,caption='Assumption Test P-values')
+```
 
