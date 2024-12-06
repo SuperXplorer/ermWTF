@@ -9,7 +9,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Times is an observational study created by timing how long it took for someone to wash their hands and comparing it to a commonly recommended time of 21 seconds. Additional factors(washing after x, where x can be restroom, eating, etc) as of right now have not been recorded.
+
 # Raw Data Graphs
+
 ```{r, echo=FALSE, warning=FALSE}
 library(ggplot2)
 suppressMessages(library(googlesheets4))
@@ -22,7 +25,7 @@ ggplot(data=timedf,mapping=aes(x=person,y=time,group=person,fill=person))+geom_b
 ggplot(data=timedf,mapping=aes(x=time))+geom_histogram(bins=15,fill='navy') + ggtitle('Time Histogram')
 ```
 
-# Comparison to Recommended Time
+# Individual Comparisons
 
 ```{r echo=FALSE}
 library(knitr)
